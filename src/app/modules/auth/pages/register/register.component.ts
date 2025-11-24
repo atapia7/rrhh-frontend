@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { GenderType, RegisterRequest } from '../../../../core/models/auth.models';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -27,7 +28,6 @@ export class RegisterComponent {
     { value: 'OTHER', label: 'Otro' }
   ];
 
-  // Definición del formulario con validaciones para todos los campos
   registerForm = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -59,23 +59,30 @@ export class RegisterComponent {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-           console.log('Registro exitoso');
-           // Si hubo autologin, redirigimos al dashboard.
-           // Si tu API requiere verificar email primero, redirige a una página de "Revisa tu correo".
-           this.router.navigate(['/dashboard']); // Ajusta esta ruta según tu app
+          console.log('Registro exitoso');
+          Swal.fire({
+            icon: 'success',
+            title: '¡Registro exitoso!',
+            text: 'Tu cuenta ha sido creada correctamente.',
+            timer: 1500,
+            showConfirmButton: false,
+            heightAuto: false
+          }).then(() => {
+            this.router.navigate(['/dashboard']); // Ajusta esta ruta según tu app
+          });
         }
       },
       error: (err) => {
         console.error('Error en registro', err);
         this.isLoading = false;
-        // Manejo básico de errores. Tu API podría devolver detalles sobre qué campo falló.
-        if (err.status === 409) {
-           this.errorMessage = 'El correo electrónico ya está registrado.';
-        } else if (err.status === 400) {
-           this.errorMessage = 'Datos inválidos. Por favor revisa el formulario.';
-        } else {
-           this.errorMessage = 'Ha ocurrido un error en el registro. Inténtalo más tarde.';
-        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Error en el registro',
+          text: err.error?.message || 'Ha ocurrido un error inesperado. Inténtalo más tarde.',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#d33',
+          heightAuto: false
+        });
       }
     });
   }
